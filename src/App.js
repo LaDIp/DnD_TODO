@@ -1,23 +1,60 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import style from './App.module.css';
+import Column from './Column/Column';
+import { useDispatch, useSelector } from 'react-redux';
+import { DragDropContext } from 'react-beautiful-dnd';
+
+import {
+  ADD_COLUMN,
+  REORDER_CARDS
+} from './const'
+
+
 
 function App() {
+  const dispatch = useDispatch()
+  const board = useSelector(state => state)
+
+  const addColumn = () => {
+    const column = { 
+      id: `column-${Date.now()}`,
+      title: '',
+      list: []
+    }
+    dispatch({type: ADD_COLUMN, payload: column})
+  }
+  
+  const onDragEnd = ({source, destination}) =>{
+    if (!destination) {
+      return;
+    }
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+    dispatch({type: REORDER_CARDS, payload: 
+      {
+        sourceColumn: source.droppableId, 
+        sourceIndex: source.index, 
+        destinationColumn: destination.droppableId,
+        destinationIndex: destination.index
+      }
+    })
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={style.board}>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {board.map(column =>
+          <Column
+            key={column.id} 
+            column={column}
+          />
+        )}
+      </DragDropContext>
+      <button className={style.addButton} onClick={addColumn}>+ Добавить колонку</button>
     </div>
   );
 }
